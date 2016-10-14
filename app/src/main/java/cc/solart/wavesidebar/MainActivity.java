@@ -10,6 +10,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -72,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        String[] letters=new String[]{"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","#"};
+        mSideBarView.setLetters(Arrays.asList(letters));
 
     }
 

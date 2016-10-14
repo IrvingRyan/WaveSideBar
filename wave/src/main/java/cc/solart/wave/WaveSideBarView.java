@@ -55,11 +55,11 @@ public class WaveSideBarView extends View {
     private int mItemHeight;
     private int mPadding;
 
-    // 波浪路径
-    private Path mWavePath = new Path();
-
     // 圆形路径
     private Path mBallPath = new Path();
+
+    //三角尖路径
+    private Path mTrianglePath=new Path();
 
     // 手指滑动的Y点作为中心点
     private int mCenterY; //中心点Y
@@ -97,8 +97,8 @@ public class WaveSideBarView extends View {
     private void init(Context context, AttributeSet attrs) {
         mLetters = Arrays.asList(context.getResources().getStringArray(R.array.waveSideBarLetters));
 
-        mTextColor = Color.parseColor("#969696");
-        mWaveColor = Color.parseColor("#be69be91");
+        mTextColor = Color.parseColor("#0288d1");
+        mWaveColor = Color.parseColor("#0288d1");
         mTextColorChoose = context.getResources().getColor(android.R.color.white);
         mTextSize = context.getResources().getDimensionPixelSize(R.dimen.textSize_sidebar);
         mLargeTextSize = context.getResources().getDimensionPixelSize(R.dimen.large_textSize_sidebar);
@@ -183,9 +183,6 @@ public class WaveSideBarView extends View {
         //绘制字母列表
         drawLetters(canvas);
 
-        //绘制波浪
-        drawWavePath(canvas);
-
         //绘制圆
         drawBallPath(canvas);
 
@@ -201,23 +198,24 @@ public class WaveSideBarView extends View {
         rectF.right = mPosX + mTextSize;
         rectF.top = mTextSize / 2;
         rectF.bottom = mHeight - mTextSize / 2;
-
-        mLettersPaint.reset();
-        mLettersPaint.setStyle(Paint.Style.FILL);
-        mLettersPaint.setColor(Color.parseColor("#F9F9F9"));
-        mLettersPaint.setAntiAlias(true);
-        canvas.drawRoundRect(rectF, mTextSize, mTextSize, mLettersPaint);
-
-        mLettersPaint.reset();
-        mLettersPaint.setStyle(Paint.Style.STROKE);
-        mLettersPaint.setColor(mTextColor);
-        mLettersPaint.setAntiAlias(true);
-        canvas.drawRoundRect(rectF, mTextSize, mTextSize, mLettersPaint);
+//
+//        mLettersPaint.reset();
+//        mLettersPaint.setStyle(Paint.Style.FILL);
+//        mLettersPaint.setColor(Color.parseColor("#F9F9F9"));
+//        mLettersPaint.setAntiAlias(true);
+//        canvas.drawRoundRect(rectF, mTextSize, mTextSize, mLettersPaint);
+//
+//        mLettersPaint.reset();
+//        mLettersPaint.setStyle(Paint.Style.STROKE);
+//        mLettersPaint.setColor(mTextColor);
+//        mLettersPaint.setAntiAlias(true);
+//        canvas.drawRoundRect(rectF, mTextSize, mTextSize, mLettersPaint);
 
         for (int i = 0; i < mLetters.size(); i++) {
             mLettersPaint.reset();
             mLettersPaint.setColor(mTextColor);
             mLettersPaint.setAntiAlias(true);
+            mLettersPaint.setFakeBoldText(true);
             mLettersPaint.setTextSize(mTextSize);
             mLettersPaint.setTextAlign(Paint.Align.CENTER);
 
@@ -256,48 +254,19 @@ public class WaveSideBarView extends View {
         }
     }
 
-    /**
-     * 绘制波浪
-     *
-     * @param canvas
-     */
-    private void drawWavePath(Canvas canvas) {
-        mWavePath.reset();
-        // 移动到起始点
-        mWavePath.moveTo(mWidth, mCenterY - 3 * mRadius);
-        //计算上部控制点的Y轴位置
-        int controlTopY = mCenterY - 2 * mRadius;
-
-        //计算上部结束点的坐标
-        int endTopX = (int) (mWidth - mRadius * Math.cos(ANGLE) * mRatio);
-        int endTopY = (int) (controlTopY + mRadius * Math.sin(ANGLE));
-        mWavePath.quadTo(mWidth, controlTopY, endTopX, endTopY);
-
-        //计算中心控制点的坐标
-        int controlCenterX = (int) (mWidth - 1.8f * mRadius * Math.sin(ANGLE_R) * mRatio);
-        int controlCenterY = mCenterY;
-        //计算下部结束点的坐标
-        int controlBottomY = mCenterY + 2 * mRadius;
-        int endBottomX = endTopX;
-        int endBottomY = (int) (controlBottomY - mRadius * Math.cos(ANGLE));
-        mWavePath.quadTo(controlCenterX, controlCenterY, endBottomX, endBottomY);
-
-        mWavePath.quadTo(mWidth, controlBottomY, mWidth, controlBottomY + mRadius);
-
-        mWavePath.close();
-        canvas.drawPath(mWavePath, mWavePaint);
-    }
 
     private void drawBallPath(Canvas canvas) {
         //x轴的移动路径
         mBallCentreX = (mWidth + mBallRadius) - (2.0f * mRadius + 2.0f * mBallRadius) * mRatio;
 
         mBallPath.reset();
+        mTrianglePath.reset();
         mBallPath.addCircle(mBallCentreX, mCenterY, mBallRadius, Path.Direction.CW);
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
-            mBallPath.op(mWavePath, Path.Op.DIFFERENCE);
-        }
-
+        //绘制三角尖
+        mBallPath.moveTo(mBallCentreX,mCenterY);
+        mBallPath.lineTo(mBallCentreX, (float) (mCenterY-3/2f*mBallRadius*Math.tan(Math.PI/6)));
+        mBallPath.lineTo(mBallCentreX+3/2f*mBallRadius, mCenterY);
+        mBallPath.lineTo(mBallCentreX, (float) (mCenterY+3/2f*mBallRadius*Math.tan(Math.PI/6)));
         mBallPath.close();
         canvas.drawPath(mBallPath, mWavePaint);
 
@@ -309,6 +278,7 @@ public class WaveSideBarView extends View {
             mRatioAnimator = new ValueAnimator();
         }
         mRatioAnimator.cancel();
+        mRatioAnimator.setDuration(100);
         mRatioAnimator.setFloatValues(value);
         mRatioAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
